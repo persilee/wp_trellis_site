@@ -9,7 +9,7 @@
 
 - name: reload php-fpm
   service:
-    name: php7.2-fpm
+    name: php5.6-fpm
     state: reloaded
 
 - import_tasks: reload_nginx.yml
