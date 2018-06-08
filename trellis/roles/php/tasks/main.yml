@@ -1,0 +1,38 @@
+---
+- name: Add PHP 5.6 PPA
+  apt_repository:
+    repo: "ppa:ondrej/php"
+    update_cache: yes
+
+- name: Install PHP 5.6
+  apt:
+    name: "{{ item.key }}"
+    state: "{{ item.value }}"
+    cache_valid_time: "{{ apt_cache_valid_time }}"
+  with_dict: "{{ php_extensions }}"
+
+- name: Start php5.6-fpm service
+  service:
+    name: php5.6-fpm
+    state: started
+    enabled: true
+
+- name: Check for existing php5.5-fpm service
+  stat:
+    path: /etc/init.d/php5.5-fpm
+  register: php55_status
+
+- name: Stop php5.5-fpm service if it exists
+  service:
+    name: php5.5-fpm
+    state: stopped
+    enabled: false
+  register: service_stopped
+  when: php55_status.stat.exists
+  notify: reload php-fpm
+
+- name: PHP configuration file
+  template:
+    src: php.ini.j2
+    dest: /etc/php/5.6/fpm/php.ini
+  notify: reload php-fpm
